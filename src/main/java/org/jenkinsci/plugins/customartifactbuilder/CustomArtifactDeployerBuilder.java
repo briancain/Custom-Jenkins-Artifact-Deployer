@@ -79,6 +79,11 @@ public class CustomArtifactDeployerBuilder extends Builder {
     private boolean processDeployment(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener, FilePath workspace) throws InterruptedException {
     	//Creating the remote directory
         //listener.getLogger().println("[CustomArtifactDeployer] - The given path is:\n" + workspace);
+    	
+    	if (filedir == null){
+    		listener.getLogger().println("[CustomArtifactDeployer] - A directory must be set.");
+    		return false;
+    	}
         
     	//Creating the remote directory
     	listener.getLogger().println("[CustomArtifactDeployer] - Begin file directory creation.");
@@ -89,6 +94,16 @@ public class CustomArtifactDeployerBuilder extends Builder {
         	listener.getLogger().println("[CustomArtifactDeployer] - Making dir fails.");
         	return false;
         }
+        
+        //Deleting files to remote directory if necessary
+        /*boolean deletedPreviously = entry.isDeleteRemote();
+        if (deletedPreviously) {
+            try {
+                outputFilePath.deleteContents();
+            } catch (IOException ioe) {
+                throw new ArtifactDeployerException(String.format("Can't delete contents of '%s'", outputPath), ioe);
+            }
+        }*/
         
     	return true;
     }
