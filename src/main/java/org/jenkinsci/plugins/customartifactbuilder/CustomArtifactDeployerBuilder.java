@@ -32,13 +32,13 @@ import java.io.IOException;
  *
  * @author Kohsuke Kawaguchi
  */
-public class HelloWorldBuilder extends Builder {
+public class CustomArtifactDeployerBuilder extends Builder {
 
     private final String name;
 
     // Fields in config.jelly must match the parameter names in the "DataBoundConstructor"
     @DataBoundConstructor
-    public HelloWorldBuilder(String name) {
+    public CustomArtifactDeployerBuilder(String name) {
         this.name = name;
     }
 
@@ -59,6 +59,7 @@ public class HelloWorldBuilder extends Builder {
             listener.getLogger().println("Bonjour, "+name+"!");
         else
             listener.getLogger().println("Hello, "+name+"!");
+        	listener.getLogger().println("[CustomArtifactDeployer] Welcome to the custom artifact deployer plugin.");
         return true;
     }
 
@@ -115,7 +116,7 @@ public class HelloWorldBuilder extends Builder {
          * This human readable name is used in the configuration screen.
          */
         public String getDisplayName() {
-            return "Say hello world";
+            return "Custom Artifact Deployer Builder";
         }
 
         @Override
@@ -140,4 +141,3 @@ public class HelloWorldBuilder extends Builder {
         }
     }
 }
-
