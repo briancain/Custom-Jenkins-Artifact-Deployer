@@ -1,4 +1,5 @@
 package org.jenkinsci.plugins.customartifactbuilder;
+import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Extension;
 import hudson.util.FormValidation;
@@ -8,6 +9,7 @@ import hudson.model.AbstractProject;
 import hudson.tasks.Builder;
 import hudson.tasks.BuildStepDescriptor;
 import net.sf.json.JSONObject;
+
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.QueryParameter;
@@ -15,22 +17,12 @@ import org.kohsuke.stapler.QueryParameter;
 import javax.servlet.ServletException;
 import java.io.IOException;
 
-/**
- * Sample {@link Builder}.
- *
- * <p>
- * When the user configures the project and enables this builder,
- * {@link DescriptorImpl#newInstance(StaplerRequest)} is invoked
- * and a new {@link HelloWorldBuilder} is created. The created
- * instance is persisted to the project configuration XML by using
- * XStream, so this allows you to use instance fields (like {@link #name})
- * to remember the configuration.
- *
- * <p>
- * When a build is performed, the {@link #perform(AbstractBuild, Launcher, BuildListener)}
- * method will be invoked. 
- *
- * @author Kohsuke Kawaguchi
+/*
+ * A custom artifact deployer.
+ * 
+ * This class is in charge of the building.
+ * 
+ * @author Brian Cain
  */
 public class CustomArtifactDeployerBuilder extends Builder {
 
@@ -56,7 +48,7 @@ public class CustomArtifactDeployerBuilder extends Builder {
     }
 
     @Override
-    public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) {
+    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException {
         // This is where you 'build' the project.
         // Since this is a dummy, we just say 'hello world' and call that a build.
 
@@ -69,7 +61,36 @@ public class CustomArtifactDeployerBuilder extends Builder {
         listener.getLogger().println("[CustomArtifactDeployer] - Welcome to the custom artifact deployer plugin.");
         listener.getLogger().println("[CustomArtifactDeployer] - The file you have picked is: " + file + ".");
         listener.getLogger().println("[CustomArtifactDeployer] - The file directory you have picked is: " + filedir + ".");
+        
+        final FilePath workspace = build.getWorkspace();
+        boolean deploy = processDeployment(build, launcher, listener, workspace);
+        
+        if (!deploy){
+        	listener.getLogger().println("[CustomArtifactDeployer] - Deployment failed.");
+        	return false;
+        }
+        else{
+        	listener.getLogger().println("[CustomArtifactDeployer] - Deployment worked!");
+        }
+       
         return true;
+    }
+    
+    private boolean processDeployment(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener, FilePath workspace) throws InterruptedException {
+    	//Creating the remote directory
+        //listener.getLogger().println("[CustomArtifactDeployer] - The given path is:\n" + workspace);
+        
+    	//Creating the remote directory
+    	listener.getLogger().println("[CustomArtifactDeployer] - Begin file directory creation.");
+        final FilePath outputFilePath = new FilePath(workspace.getChannel(), filedir);
+        try {
+            outputFilePath.mkdirs();
+        } catch (IOException ioe) {
+        	listener.getLogger().println("[CustomArtifactDeployer] - Making dir fails.");
+        	return false;
+        }
+        
+    	return true;
     }
 
     // Overridden for better type safety.

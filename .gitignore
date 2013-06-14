@@ -7,5 +7,6 @@
 
 # Maven Specific Folders
 foo/
+hello_foo/
 work/
 target/
