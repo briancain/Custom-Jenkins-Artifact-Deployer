@@ -4,3 +4,8 @@
 *.jar
 *.war
 *.ear
+
+# Maven Specific Folders
+foo/
+work/
+target/
