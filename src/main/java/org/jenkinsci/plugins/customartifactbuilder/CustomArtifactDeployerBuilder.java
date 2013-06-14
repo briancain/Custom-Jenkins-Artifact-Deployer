@@ -34,19 +34,25 @@ import java.io.IOException;
  */
 public class CustomArtifactDeployerBuilder extends Builder {
 
-    private final String name;
+    private final String file;
+    private final String filedir;
 
     // Fields in config.jelly must match the parameter names in the "DataBoundConstructor"
     @DataBoundConstructor
-    public CustomArtifactDeployerBuilder(String name) {
-        this.name = name;
+    public CustomArtifactDeployerBuilder(String file, String filedir) {
+        this.file = file;
+        this.filedir = filedir;
     }
 
     /**
      * We'll use this from the <tt>config.jelly</tt>.
      */
-    public String getName() {
-        return name;
+    public String getFile() {
+        return file;
+    }
+    
+    public String getFiledir(){
+    	return filedir;
     }
 
     @Override
@@ -55,11 +61,14 @@ public class CustomArtifactDeployerBuilder extends Builder {
         // Since this is a dummy, we just say 'hello world' and call that a build.
 
         // This also shows how you can consult the global configuration of the builder
-        if (getDescriptor().getUseFrench())
-            listener.getLogger().println("Bonjour, "+name+"!");
-        else
-            listener.getLogger().println("Hello, "+name+"!");
-        	listener.getLogger().println("[CustomArtifactDeployer] Welcome to the custom artifact deployer plugin.");
+//        if (getDescriptor().getUseFrench())
+//            listener.getLogger().println("Bonjour, "+name+"!");
+//        else
+//            listener.getLogger().println("Hello, "+name+"!");
+        	
+        listener.getLogger().println("[CustomArtifactDeployer] - Welcome to the custom artifact deployer plugin.");
+        listener.getLogger().println("[CustomArtifactDeployer] - The file you have picked is: " + file + ".");
+        listener.getLogger().println("[CustomArtifactDeployer] - The file directory you have picked is: " + filedir + ".");
         return true;
     }
 

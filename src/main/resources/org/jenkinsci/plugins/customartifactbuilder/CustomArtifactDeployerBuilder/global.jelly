@@ -11,10 +11,11 @@
     tags they use. Views are always organized according to its owner class,
     so it should be straightforward to find them.
   -->
-  <f:section title="Custom Artifact Deployer Builder">
-    <f:entry title="French" field="useFrench"
+  <f:section title="[CustomArtifactDeployer] - Deploy artifacts from workspace to remote directories">
+    <!--<f:entry title="French" field="useFrench"
       description="Check if we should say hello in French">
       <f:checkbox />
     </f:entry>
+    -->
   </f:section>
 </j:jelly>
