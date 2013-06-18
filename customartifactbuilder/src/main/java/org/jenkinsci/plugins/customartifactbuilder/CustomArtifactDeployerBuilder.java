@@ -42,13 +42,13 @@ public class CustomArtifactDeployerBuilder extends Builder {
     /**
      * We'll use this from the <tt>config.jelly</tt>.
      */
-    public String getFile() {
+    /*public String getFile() {
         return file;
     }
     
     public String getFiledir(){
     	return filedir;
-    }
+    }*/
 
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException {
@@ -167,7 +167,7 @@ public class CustomArtifactDeployerBuilder extends Builder {
             return "Custom Artifact Deployer Builder";
         }
 
-        @Override
+        /*@Override
         public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
             // To persist global configuration information,
             // set that to properties and call save().
@@ -176,7 +176,7 @@ public class CustomArtifactDeployerBuilder extends Builder {
             //  (easier when there are many fields; need set* methods for this, like setUseFrench)
             save();
             return super.configure(req,formData);
-        }
+        }*/
 
         /**
          * This method returns true if the global configuration says we should speak French.
