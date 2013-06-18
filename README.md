@@ -1,4 +1,3 @@
-Custom-Jenkins-Artifact-Deployer
-================================
+# Jenkins Plugins
 
-A Jenkins artifact deployer plugin
+This repository contains a few custom Jenkins plugins created/modified by me.
