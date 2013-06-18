@@ -59,7 +59,7 @@ public class ArtifactDeployerCopy implements FilePath.FileCallable<List<Artifact
         listener.getLogger().println("Value of includes: " + includes);
         listener.getLogger().println("Remote is: " + remote);
         
-        listener.getLogger().println("[CustomArtifactDeployer] - This might not work....");
+        //listener.getLogger().println("[CustomArtifactDeployer] - This might not work....");
         
         FileUtils.copyFileToDirectory(new File(localBasedir, includes), new File(remote));
 
@@ -75,6 +75,8 @@ public class ArtifactDeployerCopy implements FilePath.FileCallable<List<Artifact
             deploymentResultEntry.setRemotePath(renoteFile.getPath());
             deployedArtifactsResultList.add(deploymentResultEntry);
         }
+        
+        listener.getLogger().println("[CustomArtifactDeployer] - Artifact Deployed ...");
         return deployedArtifactsResultList;
     }
 

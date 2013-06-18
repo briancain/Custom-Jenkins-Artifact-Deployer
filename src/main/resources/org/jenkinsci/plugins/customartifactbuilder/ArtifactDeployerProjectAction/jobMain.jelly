@@ -4,7 +4,7 @@
     <j:if test="${latestDeployedArtifacts != null}">
         <table style="margin-top: 1em; margin-left:1em;">
             <t:summary icon="package.gif">
-                ${%Last Successful Deployed Custom Artifacts}
+                ${%Last Successful Deployed Artifacts}
                 <ul>
                     <j:set var="lastSuccessfulNumber" value="${it.lastSuccessfulNumber}"/>
                     <j:forEach var="artifact" items="${latestDeployedArtifacts.allArtifacts}">
