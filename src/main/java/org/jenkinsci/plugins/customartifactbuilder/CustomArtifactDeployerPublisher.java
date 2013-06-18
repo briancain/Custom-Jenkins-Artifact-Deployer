@@ -7,7 +7,9 @@ import java.util.*;
 import org.jenkinsci.plugins.customartifactbuilder.service.*;
 import org.jenkinsci.plugins.customartifactbuilder.exception.ArtifactDeployerException;
 
+import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
 
 import hudson.Extension;
 import hudson.FilePath;
@@ -26,6 +28,7 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
+import hudson.util.FormValidation;
 
 /*
  * 
@@ -54,6 +57,12 @@ public class CustomArtifactDeployerPublisher extends Recorder implements MatrixA
         this.deployEvenBuildFail = deployEvenBuildFail;
         if(this.entries == null)
         	this.entries = Collections.emptyList();
+    }
+    
+    public Object readResolve() {
+    	if(this.entries == null)
+    		this.entries = Collections.emptyList();
+    	return this;
     }
 
     /**
@@ -146,16 +155,16 @@ public class CustomArtifactDeployerPublisher extends Recorder implements MatrixA
 	                int currentTotalDeployedCounter = deployedArtifactsAction.getDeployedArtifactsInfo().size();
 	                deployedArtifacts = processDeployment(build, listener, currentTotalDeployedCounter);
 	            } catch (ArtifactDeployerException ae) {
-	                listener.getLogger().println("[ArtifactDeployer] - [ERROR] - Failed to deploy. " + ae.getMessage());
+	                listener.getLogger().println("[CustomArtifactDeployer] - [ERROR] - Failed to deploy. " + ae.getMessage());
 	                if (ae.getCause() != null) {
-	                    listener.getLogger().println("[ArtifactDeployer] - [ERROR] - " + ae.getCause().getMessage());
+	                    listener.getLogger().println("[CustomArtifactDeployer] - [ERROR] - " + ae.getCause().getMessage());
 	                }
 	                build.setResult(Result.FAILURE);
 	                return false;
 	            }
 
 	            deployedArtifactsAction.addDeployedArtifacts(deployedArtifacts);
-	            listener.getLogger().println("[ArtifactDeployer] - Stopping deployment from the post-action...");
+	            listener.getLogger().println("[CustomArtifactDeployer] - Stopping deployment from the post-action...");
 	        }
 	        return true;
 	}
@@ -257,6 +266,23 @@ public class CustomArtifactDeployerPublisher extends Recorder implements MatrixA
 		 return sb.toString();
 	}
 	
+	 @SuppressWarnings("unused")
+	 public List<ArtifactDeployerEntry> getEntries() {
+		 return entries;
+	 }
+
+	 public void setEntries(List<ArtifactDeployerEntry> entries) {
+		 this.entries = entries;
+	 }
+
+	 public boolean isDeployEvenBuildFail() {
+		 return deployEvenBuildFail;
+	 }
+
+	 public void setDeployEvenBuildFail(boolean deployEvenBuildFail) {
+		 this.deployEvenBuildFail = deployEvenBuildFail;
+	 }
+	 
 	@Extension
     public static final class CustomArtifactDeployerDescriptor extends BuildStepDescriptor<Publisher> {
 		public static final String DISPLAY_NAME = "Custom Artifact Deployer";
@@ -273,5 +299,15 @@ public class CustomArtifactDeployerPublisher extends Recorder implements MatrixA
 			return DISPLAY_NAME;
 		}
 		
+		public FormValidation doCheckIncludes(@AncestorInPath AbstractProject project, @QueryParameter String value) throws IOException {
+            return FilePath.validateFileMask(project.getSomeWorkspace(), value);
+        }
+		
+		public FormValidation doCheckRemote(@QueryParameter String value) throws IOException {
+            if (value == null || value.trim().length() == 0) {
+                return FormValidation.error("Remote directory is mandatory.");
+            }
+            return FormValidation.ok();
+        }
 	}
 }
