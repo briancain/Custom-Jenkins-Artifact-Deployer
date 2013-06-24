@@ -1,19 +1,17 @@
 package org.jenkinsci.plugins.customartifactbuilder;
 
+import hudson.FilePath;
 import hudson.model.AbstractBuild;
 import hudson.model.Action;
 import hudson.model.AbstractProject;
 
 public class CustomProjectAction implements Action{
 	
-	private final AbstractProject<?, ?> project;
+	private final FilePath filepath;
 	
-	public CustomProjectAction(AbstractProject<?, ?> project) {
-		this.project = project;
-	}
-	
-	public AbstractProject<?, ?> getProject(){
-		return project;
+	// file path
+	public CustomProjectAction(FilePath filepath) {
+		this.filepath = filepath;
 	}
 
 	public String getIconFileName() {
@@ -23,12 +21,11 @@ public class CustomProjectAction implements Action{
 
 	public String getDisplayName() {
 		// TODO Auto-generated method stub
-		return "Custom Gatling Project";
+		return null;
 	}
 
 	public String getUrlName() {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
 }

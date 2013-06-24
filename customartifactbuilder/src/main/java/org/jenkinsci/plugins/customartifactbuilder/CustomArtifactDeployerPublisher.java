@@ -1,15 +1,19 @@
 package org.jenkinsci.plugins.customartifactbuilder;
 
+import org.jenkinsci.plugins.customartifactbuilder.service.*;
+import org.jenkinsci.plugins.customartifactbuilder.exception.ArtifactDeployerException;
+import org.jenkinsci.plugins.customartifactbuilder.gatling.BuildSimulation;
+
 import com.excilys.ebi.gatling.jenkins.GatlingBuildAction;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.io.Serializable;
 import java.util.*;
 
 import org.apache.commons.io.FileUtils;
-import org.jenkinsci.plugins.customartifactbuilder.service.*;
-import org.jenkinsci.plugins.customartifactbuilder.exception.ArtifactDeployerException;
+import org.apache.commons.io.LineIterator;
 
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -45,6 +49,7 @@ public class CustomArtifactDeployerPublisher extends Recorder implements MatrixA
 
     private List<ArtifactDeployerEntry> entries = Collections.emptyList();
     private boolean deployEvenBuildFail;
+    private PrintStream logger;
     
     // Fields in config.jelly must match the parameter names in the "DataBoundConstructor"
     // old constructor
@@ -118,7 +123,8 @@ public class CustomArtifactDeployerPublisher extends Recorder implements MatrixA
 	
 	@Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
-        // This is where you 'build' the project.
+		logger = listener.getLogger();
+		// This is where you 'build' the project.
         // Since this is a dummy, we just say 'hello world' and call that a build.
 
         // This also shows how you can consult the global configuration of the builder
@@ -127,7 +133,7 @@ public class CustomArtifactDeployerPublisher extends Recorder implements MatrixA
 //	        else
 //	            listener.getLogger().println("Hello, "+name+"!");
         	
-        listener.getLogger().println("[CustomArtifactDeployer] - Welcome to the custom artifact deployer post-build plugin.");
+        logger.println("[CustomArtifactDeployer] - Welcome to the custom artifact deployer post-build plugin.");
         /*listener.getLogger().println("[CustomArtifactDeployer] - The file you have picked is: " + file + ".");
         listener.getLogger().println("[CustomArtifactDeployer] - The file directory you have picked is: " + filedir + ".");
         
@@ -151,7 +157,7 @@ public class CustomArtifactDeployerPublisher extends Recorder implements MatrixA
 	private boolean _perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws IOException{
 		if (isPerformDeployment(build)) {
 
-			listener.getLogger().println("[CustomArtifactDeployer] - Starting deployment from the post-action ...");
+			logger.println("[CustomArtifactDeployer] - Starting deployment from the post-action ...");
 			DeployedArtifactsActionManager deployedArtifactsService = DeployedArtifactsActionManager.getInstance();
 			DeployedArtifacts deployedArtifactsAction = deployedArtifactsService.getOrCreateAction(build);
 			Map<Integer, List<ArtifactDeployerVO>> deployedArtifacts;
@@ -168,44 +174,64 @@ public class CustomArtifactDeployerPublisher extends Recorder implements MatrixA
 			}
 
 			deployedArtifactsAction.addDeployedArtifacts(deployedArtifacts);
-			listener.getLogger().println("[CustomArtifactDeployer] - Stopping deployment from the post-action...");
+			logger.println("[CustomArtifactDeployer] - Stopping deployment from the post-action...");
 		}
 		
-		boolean succ = getAction(build, launcher, listener);
+		boolean succ = getBuildAction(build, launcher, listener);
 		
 		return true;
 	}
 	
-	private boolean getAction(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws IOException{
+	private boolean getBuildAction(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws IOException{
 		// get action - gatling build action
-		listener.getLogger().println("[CustomArtifactDeployer] - Going to get Gatling Build Actions...");
+		logger.println("[CustomArtifactDeployer] - Going to get Gatling Build Actions...");
 		List<GatlingBuildAction> gba_lst = build.getActions(GatlingBuildAction.class);
 		GatlingBuildAction action = gba_lst.get(0);
 		int action_lst_size = action.getSimulations().size();
 		FilePath simdir = action.getSimulations().get(0).getSimulationDirectory();
 		String file_contents_path = simdir + "/stats.tsv";
 		
-		listener.getLogger().println("[CustomArtifactDeployer] - It worked without errors..maybe... " + action_lst_size);
-		listener.getLogger().println("[CustomArtifactDeployer] - The simulation directory is: " + simdir);
-		listener.getLogger().println("[CustomArtifactDeployer] - The file contents path is: " + file_contents_path);
+		logger.println("[CustomArtifactDeployer] - It worked without errors..maybe... " + action_lst_size);
+		logger.println("[CustomArtifactDeployer] - The simulation directory is: " + simdir);
+		logger.println("[CustomArtifactDeployer] - The file contents path is: " + file_contents_path);
 		// Open file object from simulation directory, get stats.tsv, parse it to obtain list of first things in line, then save as artifact
 		
 		// Open file, save to string, then split contents on tab
+		// Split per line, save first token on each line
+		LineIterator it = FileUtils.lineIterator(new File(file_contents_path));
+		List<String> ls_tokens = new ArrayList<String>();
+		try{
+			while(it.hasNext()){
+				String line = it.nextLine();
+				String[] tmp_toke = line.split("\t");
+				ls_tokens.add(tmp_toke[0]);
+			}
+		} finally{
+			it.close();
+		}
 		String file_contents = FileUtils.readFileToString(new File(file_contents_path));
-		String[] tokens = file_contents.split("\t");
 		
 		// Original File contents, then tokenized contents
-		listener.getLogger().println("[CustomArtifactDeployer] - The file contents is: \n" + file_contents);
-		for(String token: tokens){
-			listener.getLogger().println("[CustomArtifactDeployer] - Here's a token: " + token + "\n");
+		logger.println("[CustomArtifactDeployer] - The file contents is: \n" + file_contents);
+		for(String token: ls_tokens){
+			logger.println("[CustomArtifactDeployer] - Here's a token: " + token + "\n");
 		}
 		
 		// Save to artifact Build Action?
 		// savefullreports function
+		logger.println("[CustomArtifactDeployer] - Archiving reports...");
+		List<BuildSimulation> sims = saveFullReports(build.getWorkspace(), build.getRootDir());
+		if (sims.size() == 0){
+			logger.println("[CustomArtifactDeployer] - No newer Gatling reports to archive");
+		}
 		
 		// CustomProjectAction action = new CustomProjectAction(build, sims);
 		// build.addaction(myaction);
 		return true;
+	}
+	
+	private List<BuildSimulation> saveFullReports(FilePath workspace, File rootDir){
+		return new ArrayList<BuildSimulation>();
 	}
 	
 	private Map<Integer, List<ArtifactDeployerVO>> processDeployment(AbstractBuild<?, ?> build, final BuildListener listener, int currentNbDeployedArtifacts) throws ArtifactDeployerException {
