@@ -1,9 +1,13 @@
 package org.jenkinsci.plugins.customartifactbuilder;
 
+import com.excilys.ebi.gatling.jenkins.GatlingBuildAction;
+
+import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 
+import org.apache.commons.io.FileUtils;
 import org.jenkinsci.plugins.customartifactbuilder.service.*;
 import org.jenkinsci.plugins.customartifactbuilder.exception.ArtifactDeployerException;
 
@@ -113,7 +117,7 @@ public class CustomArtifactDeployerPublisher extends Recorder implements MatrixA
     }
 	
 	@Override
-    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException {
+    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
         // This is where you 'build' the project.
         // Since this is a dummy, we just say 'hello world' and call that a build.
 
@@ -144,29 +148,64 @@ public class CustomArtifactDeployerPublisher extends Recorder implements MatrixA
         return true;
     }
 	 
-	private boolean _perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener){
-		 if (isPerformDeployment(build)) {
+	private boolean _perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws IOException{
+		if (isPerformDeployment(build)) {
 
-	            listener.getLogger().println("[CustomArtifactDeployer] - Starting deployment from the post-action ...");
-	            DeployedArtifactsActionManager deployedArtifactsService = DeployedArtifactsActionManager.getInstance();
-	            DeployedArtifacts deployedArtifactsAction = deployedArtifactsService.getOrCreateAction(build);
-	            Map<Integer, List<ArtifactDeployerVO>> deployedArtifacts;
-	            try {
-	                int currentTotalDeployedCounter = deployedArtifactsAction.getDeployedArtifactsInfo().size();
-	                deployedArtifacts = processDeployment(build, listener, currentTotalDeployedCounter);
-	            } catch (ArtifactDeployerException ae) {
-	                listener.getLogger().println("[CustomArtifactDeployer] - [ERROR] - Failed to deploy. " + ae.getMessage());
-	                if (ae.getCause() != null) {
-	                    listener.getLogger().println("[CustomArtifactDeployer] - [ERROR] - " + ae.getCause().getMessage());
-	                }
-	                build.setResult(Result.FAILURE);
-	                return false;
-	            }
+			listener.getLogger().println("[CustomArtifactDeployer] - Starting deployment from the post-action ...");
+			DeployedArtifactsActionManager deployedArtifactsService = DeployedArtifactsActionManager.getInstance();
+			DeployedArtifacts deployedArtifactsAction = deployedArtifactsService.getOrCreateAction(build);
+			Map<Integer, List<ArtifactDeployerVO>> deployedArtifacts;
+			try {
+				int currentTotalDeployedCounter = deployedArtifactsAction.getDeployedArtifactsInfo().size();
+				deployedArtifacts = processDeployment(build, listener, currentTotalDeployedCounter);
+			} catch (ArtifactDeployerException ae) {
+				listener.getLogger().println("[CustomArtifactDeployer] - [ERROR] - Failed to deploy. " + ae.getMessage());
+				if (ae.getCause() != null) {
+					listener.getLogger().println("[CustomArtifactDeployer] - [ERROR] - " + ae.getCause().getMessage());
+				}
+				build.setResult(Result.FAILURE);
+				return false;
+			}
 
-	            deployedArtifactsAction.addDeployedArtifacts(deployedArtifacts);
-	            listener.getLogger().println("[CustomArtifactDeployer] - Stopping deployment from the post-action...");
-	        }
-	        return true;
+			deployedArtifactsAction.addDeployedArtifacts(deployedArtifacts);
+			listener.getLogger().println("[CustomArtifactDeployer] - Stopping deployment from the post-action...");
+		}
+		
+		boolean succ = getAction(build, launcher, listener);
+		
+		return true;
+	}
+	
+	private boolean getAction(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws IOException{
+		// get action - gatling build action
+		listener.getLogger().println("[CustomArtifactDeployer] - Going to get Gatling Build Actions...");
+		List<GatlingBuildAction> gba_lst = build.getActions(GatlingBuildAction.class);
+		GatlingBuildAction action = gba_lst.get(0);
+		int action_lst_size = action.getSimulations().size();
+		FilePath simdir = action.getSimulations().get(0).getSimulationDirectory();
+		String file_contents_path = simdir + "/stats.tsv";
+		
+		listener.getLogger().println("[CustomArtifactDeployer] - It worked without errors..maybe... " + action_lst_size);
+		listener.getLogger().println("[CustomArtifactDeployer] - The simulation directory is: " + simdir);
+		listener.getLogger().println("[CustomArtifactDeployer] - The file contents path is: " + file_contents_path);
+		// Open file object from simulation directory, get stats.tsv, parse it to obtain list of first things in line, then save as artifact
+		
+		// Open file, save to string, then split contents on tab
+		String file_contents = FileUtils.readFileToString(new File(file_contents_path));
+		String[] tokens = file_contents.split("\t");
+		
+		// Original File contents, then tokenized contents
+		listener.getLogger().println("[CustomArtifactDeployer] - The file contents is: \n" + file_contents);
+		for(String token: tokens){
+			listener.getLogger().println("[CustomArtifactDeployer] - Here's a token: " + token + "\n");
+		}
+		
+		// Save to artifact Build Action?
+		// savefullreports function
+		
+		// CustomProjectAction action = new CustomProjectAction(build, sims);
+		// build.addaction(myaction);
+		return true;
 	}
 	
 	private Map<Integer, List<ArtifactDeployerVO>> processDeployment(AbstractBuild<?, ?> build, final BuildListener listener, int currentNbDeployedArtifacts) throws ArtifactDeployerException {

@@ -1,0 +1,15 @@
+# Copy of gatling plugin repo
+gatling-plugin/
+
+*.class
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+# Maven Specific Folders
+foo/
+graphs/
+work/
+target/
