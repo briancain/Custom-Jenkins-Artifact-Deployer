@@ -3,6 +3,7 @@ package org.jenkinsci.plugins.customartifactbuilder;
 import org.jenkinsci.plugins.customartifactbuilder.service.*;
 import org.jenkinsci.plugins.customartifactbuilder.exception.ArtifactDeployerException;
 import org.jenkinsci.plugins.customartifactbuilder.gatling.BuildSimulation;
+import org.jenkinsci.plugins.customartifactbuilder.gatling.CustomBuildAction;
 
 import com.excilys.ebi.gatling.jenkins.GatlingBuildAction;
 
@@ -154,7 +155,7 @@ public class CustomArtifactDeployerPublisher extends Recorder implements MatrixA
         return true;
     }
 	 
-	private boolean _perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws IOException{
+	private boolean _perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException{
 		if (isPerformDeployment(build)) {
 
 			logger.println("[CustomArtifactDeployer] - Starting deployment from the post-action ...");
@@ -182,10 +183,14 @@ public class CustomArtifactDeployerPublisher extends Recorder implements MatrixA
 		return true;
 	}
 	
-	private boolean getBuildAction(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws IOException{
+	private boolean getBuildAction(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException{
 		// get action - gatling build action
 		logger.println("[CustomArtifactDeployer] - Going to get Gatling Build Actions...");
 		List<GatlingBuildAction> gba_lst = build.getActions(GatlingBuildAction.class);
+		
+		if (gba_lst.size() == 0){
+			return false;
+		}
 		GatlingBuildAction action = gba_lst.get(0);
 		int action_lst_size = action.getSimulations().size();
 		FilePath simdir = action.getSimulations().get(0).getSimulationDirectory();
@@ -219,18 +224,35 @@ public class CustomArtifactDeployerPublisher extends Recorder implements MatrixA
 		
 		// Save to artifact Build Action?
 		// savefullreports function
-		logger.println("[CustomArtifactDeployer] - Archiving reports...");
+		/*logger.println("[CustomArtifactDeployer] - Archiving reports...");
 		List<BuildSimulation> sims = saveFullReports(build.getWorkspace(), build.getRootDir());
 		if (sims.size() == 0){
 			logger.println("[CustomArtifactDeployer] - No newer Gatling reports to archive");
-		}
+			return true;
+		}*/
 		
-		// CustomProjectAction action = new CustomProjectAction(build, sims);
-		// build.addaction(myaction);
+		// file path passed into here
+		FilePath my_path = build.getWorkspace().child("puppetgatlingdata");
+		CustomBuildAction customAction = new CustomBuildAction(my_path);
+		build.addAction(customAction);
 		return true;
 	}
 	
-	private List<BuildSimulation> saveFullReports(FilePath workspace, File rootDir){
+	private List<BuildSimulation> saveFullReports(FilePath workspace, File rootDir) throws IOException, InterruptedException{
+		FilePath[] files = workspace.list("**/global_stats.json");
+		List<FilePath> reportFolders = new ArrayList<FilePath>();
+		
+		if (files.length == 0){
+			throw new IllegalArgumentException("Could not find a Gatling report in results folder.");
+		}
+		
+		// Get reports folders for all "global_stats.json" found
+		for (FilePath file : files){
+			FilePath reportFilePath = file.getParent().getParent();
+			reportFolders.add(reportFilePath);
+			logger.println("[CustomArtifactDeployer] - Here is the report folder: " + reportFilePath);
+		}
+		
 		return new ArrayList<BuildSimulation>();
 	}
 	
