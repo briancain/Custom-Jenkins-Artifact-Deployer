@@ -6,6 +6,9 @@
 		</l:side-panel>
 		<l:main-panel>
             <h2>${%Available Reports} :</h2>
+            <li>
+            	${it.getFilePath()}
+            </li>
 		</l:main-panel>
 	</l:layout>
 </j:jelly>

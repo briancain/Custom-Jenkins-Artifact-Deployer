@@ -214,13 +214,22 @@ public class CustomArtifactDeployerPublisher extends Recorder implements MatrixA
 		} finally{
 			it.close();
 		}
-		String file_contents = FileUtils.readFileToString(new File(file_contents_path));
+		
+		//String file_contents = FileUtils.readFileToString(new File(file_contents_path));
 		
 		// Original File contents, then tokenized contents
-		logger.println("[CustomArtifactDeployer] - The file contents is: \n" + file_contents);
+		String token_contents = "";
+		// create a new file in simdir with token_contents
+		//logger.println("[CustomArtifactDeployer] - The file contents is: \n" + file_contents);
+		
 		for(String token: ls_tokens){
 			logger.println("[CustomArtifactDeployer] - Here's a token: " + token + "\n");
+			token_contents += token + ", ";
 		}
+		
+		String file_save_dir = simdir + "/token.csv";
+		logger.println("[CustomArtifactDeployer] - The file dir to deploy is: " + file_save_dir);
+		FileUtils.writeStringToFile(new File(file_save_dir), token_contents);
 		
 		// Save to artifact Build Action?
 		// savefullreports function

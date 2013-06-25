@@ -24,18 +24,19 @@ public class CustomBuildAction implements Action {
 	}
 
 	public String getIconFileName() {
-		// TODO Auto-generated method stub
 		return "/plugin/customartifactbuilder/img/puppet.png";
 	}
 
 	public String getDisplayName() {
-		// TODO Auto-generated method stub
 		return "Customg Gatling";
 	}
 
 	public String getUrlName() {
-		// TODO Auto-generated method stub
 		return "cgatling";
+	}
+	
+	public FilePath getFilePath(){
+		return filePath;
 	}
 	
 	//FileUtils.copyFileToDirectory(new File(localBasedir, includes), new File(remote));
