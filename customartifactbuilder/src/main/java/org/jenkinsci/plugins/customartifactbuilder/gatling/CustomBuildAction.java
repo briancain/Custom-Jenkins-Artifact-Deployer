@@ -12,9 +12,15 @@ import hudson.model.AbstractBuild;
 public class CustomBuildAction implements Action {
 	
 	private final FilePath filePath;
+	private final AbstractBuild<?, ?> build;
 	
-	public CustomBuildAction(FilePath filePath){
+	public CustomBuildAction(AbstractBuild<?, ?> build, FilePath filePath){
+		this.build = build;
 		this.filePath = filePath;
+	}
+	
+	public AbstractBuild<?, ?> getbuild(){
+		return build;
 	}
 
 	public String getIconFileName() {

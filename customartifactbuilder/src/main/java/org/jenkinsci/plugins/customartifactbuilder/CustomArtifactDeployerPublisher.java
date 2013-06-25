@@ -233,7 +233,7 @@ public class CustomArtifactDeployerPublisher extends Recorder implements MatrixA
 		
 		// file path passed into here
 		FilePath my_path = build.getWorkspace().child("puppetgatlingdata");
-		CustomBuildAction customAction = new CustomBuildAction(my_path);
+		CustomBuildAction customAction = new CustomBuildAction(build, my_path);
 		build.addAction(customAction);
 		return true;
 	}
