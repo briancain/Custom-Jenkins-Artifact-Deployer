@@ -11,10 +11,10 @@ import hudson.model.AbstractBuild;
 
 public class CustomBuildAction implements Action {
 	
-	private final FilePath filePath;
+	private final String filePath;
 	private final AbstractBuild<?, ?> build;
 	
-	public CustomBuildAction(AbstractBuild<?, ?> build, FilePath filePath){
+	public CustomBuildAction(AbstractBuild<?, ?> build, String filePath){
 		this.build = build;
 		this.filePath = filePath;
 	}
@@ -28,16 +28,14 @@ public class CustomBuildAction implements Action {
 	}
 
 	public String getDisplayName() {
-		return "Customg Gatling";
+		return "Custom Gatling";
 	}
 
 	public String getUrlName() {
 		return "cgatling";
 	}
 	
-	public FilePath getFilePath(){
+	public String getFilePath(){
 		return filePath;
 	}
-	
-	//FileUtils.copyFileToDirectory(new File(localBasedir, includes), new File(remote));
 }

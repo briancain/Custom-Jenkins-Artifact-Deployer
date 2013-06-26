@@ -1,0 +1,8 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:fmt="jelly:fmt" xmlns:l="/lib/layout"
+         xmlns:g="/com/excilys/ebi/gatling/jenkins/tags">
+	<l:layout title="${it.project.name} - ${%ProjectPageTitle}">
+	<l:side-panel>
+		<st:include it="${it.project}" page="sidepanel.jelly"/>
+	</l:side-panel>
+	</l:layout>
+</j:jelly>

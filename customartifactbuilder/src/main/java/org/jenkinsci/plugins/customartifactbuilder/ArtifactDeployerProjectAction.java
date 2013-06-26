@@ -20,6 +20,10 @@ public class ArtifactDeployerProjectAction implements Action {
     private Run getLastSuccessfulBuild() {
         return project.getLastSuccessfulBuild();
     }
+    
+    public AbstractProject<?, ?> getProject() {
+    	return project;
+    }
 
     @SuppressWarnings("unused")
     public DeployedArtifacts getLatestDeployedArtifacts() {
@@ -44,14 +48,14 @@ public class ArtifactDeployerProjectAction implements Action {
     }
 
     public String getIconFileName() {
-        return null;
-    }
+		return "/plugin/customartifactbuilder/img/puppet.png";
+	}
 
-    public String getDisplayName() {
-        return null;
-    }
+	public String getDisplayName() {
+		return "Custom Gatling";
+	}
 
-    public String getUrlName() {
-        return null;
-    }
+	public String getUrlName() {
+		return "cgatling";
+	}
 }
