@@ -40,26 +40,14 @@ public abstract class Graph<Y extends Number> {
 	private final ObjectMapper mapper = new ObjectMapper();
 
 	public Graph(AbstractProject<?, ?> project, int maxBuildsToDisplay) {
-		System.out.println("THE GRAPH CONSTRUCTOR IS HERE");
 		int numberOfBuild = 0;
-		for (AbstractBuild<?, ?> build : project.getBuilds()) {
-			GatlingBuildAction action = build.getAction(GatlingBuildAction.class);
-
-			if (action != null) {
-				numberOfBuild++;
-                for (BuildSimulation sim : action.getSimulations()) {
-				    SerieName name = new SerieName(sim.getSimulationName());
-				    if (!series.containsKey(name))
-					    series.put(name, new Serie<Integer, Y>());
-
-				    series.get(name).addPoint(build.getNumber(), getValue(sim.getRequestReport()));
-                }
-			}
-
-			if (numberOfBuild >= maxBuildsToDisplay)
-				break;
+		series.put(new SerieName("Puppet Test"), new Serie<Integer, Y>());
+		for (int x = 0; x <= 10; x++){
+			series.get(new SerieName("Puppet Test")).addPoint((Integer)x, getValue(4));
 		}
 	}
+
+	protected abstract Y getValue(int i);
 
 	public String getSeriesNamesJSON() {
 		String json = null;

@@ -65,11 +65,17 @@ public class ArtifactDeployerProjectAction implements Action {
     }
     
     public Graph<Long> getdashboardGraph() {
-    	System.out.println("Get Dashboard Graph plz");
     	return new Graph<Long>(project, MAX_BUILDS_TO_DISPLAY_DASHBOARD) {
 			@Override
 			public Long getValue(RequestReport requestReport) {
 				return requestReport.getMeanResponseTime().getTotal();
+			}
+
+			@Override
+			protected Long getValue(int i) {
+				// TODO Auto-generated method stub
+				Long ret = new Long(i);
+				return ret;
 			}
 		};
     }
