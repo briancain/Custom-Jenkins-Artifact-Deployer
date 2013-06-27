@@ -2,6 +2,8 @@ package org.jenkinsci.plugins.customartifactbuilder.gatling;
 
 import hudson.FilePath;
 
+// This file is not needed
+
 /**
  * This class is basically just a struct to hold information about one
  * or more gatling simulations that were archived for a given

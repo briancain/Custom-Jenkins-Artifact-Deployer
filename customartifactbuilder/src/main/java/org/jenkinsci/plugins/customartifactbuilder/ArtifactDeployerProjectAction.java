@@ -9,8 +9,9 @@ import hudson.model.Run;
 import java.util.List;
 
 import org.jenkinsci.plugins.customartifactbuilder.chart.Graph;
+import org.jenkinsci.plugins.customartifactbuilder.gatling.RequestReport;
 
-import com.excilys.ebi.gatling.jenkins.RequestReport;
+//import com.excilys.ebi.gatling.jenkins.RequestReport;
 import com.excilys.ebi.gatling.jenkins.GatlingBuildAction;
 
 /**
@@ -68,7 +69,7 @@ public class ArtifactDeployerProjectAction implements Action {
     	return new Graph<Long>(project, MAX_BUILDS_TO_DISPLAY_DASHBOARD) {
 			@Override
 			public Long getValue(RequestReport requestReport) {
-				return requestReport.getMeanResponseTime().getTotal();
+				return requestReport.getMeanAgentRunTime();
 			}
 
 			@Override

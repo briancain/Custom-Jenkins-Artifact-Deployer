@@ -19,17 +19,21 @@ import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.excilys.ebi.gatling.jenkins.GatlingBuildAction;
+import org.jenkinsci.plugins.customartifactbuilder.gatling.RequestReport;
+import org.jenkinsci.plugins.customartifactbuilder.gatling.CustomBuildAction;
+
+//import com.excilys.ebi.gatling.jenkins.GatlingBuildAction;
 import com.excilys.ebi.gatling.jenkins.chart.Serie;
 import com.excilys.ebi.gatling.jenkins.chart.SerieName;
-import com.excilys.ebi.gatling.jenkins.BuildSimulation;
-import com.excilys.ebi.gatling.jenkins.RequestReport;
+//import com.excilys.ebi.gatling.jenkins.BuildSimulation;
+//import com.excilys.ebi.gatling.jenkins.RequestReport;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public abstract class Graph<Y extends Number> {
@@ -41,9 +45,25 @@ public abstract class Graph<Y extends Number> {
 
 	public Graph(AbstractProject<?, ?> project, int maxBuildsToDisplay) {
 		int numberOfBuild = 0;
-		series.put(new SerieName("Puppet Test"), new Serie<Integer, Y>());
-		for (int x = 0; x <= 10; x++){
-			series.get(new SerieName("Puppet Test")).addPoint((Integer)x, getValue(4));
+		
+		for (AbstractBuild<?, ?> build : project.getBuilds()) {
+			CustomBuildAction action = build.getAction(CustomBuildAction.class);
+			
+			if (action != null){
+				numberOfBuild++;
+				List<RequestReport> tmpList = action.getRequestReportList();
+				int x = 0;
+				for (RequestReport requestR : tmpList){
+					SerieName name = new SerieName("Puppet Test " + x++);
+					if (!series.containsKey(name))
+					    series.put(name, new Serie<Integer, Y>());
+					
+					series.get(name).addPoint(build.getNumber(), getValue(requestR));
+				}
+				
+			}
+			if (numberOfBuild >= maxBuildsToDisplay)
+				break;
 		}
 	}
 

@@ -13,16 +13,22 @@ public class CustomBuildAction implements Action {
 	
 	private final String filePath;
 	private final AbstractBuild<?, ?> build;
+	private final List<RequestReport> requestReportList;
 	
-	public CustomBuildAction(AbstractBuild<?, ?> build, String filePath){
+	public CustomBuildAction(AbstractBuild<?, ?> build, String filePath, List<RequestReport> requestReportList){
 		this.build = build;
 		this.filePath = filePath;
+		this.requestReportList = requestReportList;
 	}
 	
 	public AbstractBuild<?, ?> getbuild(){
 		return build;
 	}
 
+	public List<RequestReport> getRequestReportList(){
+		return requestReportList;
+	}
+	
 	public String getIconFileName() {
 		return "/plugin/customartifactbuilder/img/puppet.png";
 	}

@@ -2,9 +2,11 @@ package org.jenkinsci.plugins.customartifactbuilder;
 
 import org.jenkinsci.plugins.customartifactbuilder.service.*;
 import org.jenkinsci.plugins.customartifactbuilder.exception.ArtifactDeployerException;
-import org.jenkinsci.plugins.customartifactbuilder.gatling.BuildSimulation;
+//import org.jenkinsci.plugins.customartifactbuilder.gatling.BuildSimulation;
+import org.jenkinsci.plugins.customartifactbuilder.gatling.RequestReport;
 import org.jenkinsci.plugins.customartifactbuilder.gatling.CustomBuildAction;
 
+import com.excilys.ebi.gatling.jenkins.BuildSimulation;
 import com.excilys.ebi.gatling.jenkins.GatlingBuildAction;
 
 import java.io.File;
@@ -242,28 +244,39 @@ public class CustomArtifactDeployerPublisher extends Recorder implements MatrixA
 		
 		// file path passed into here
 		//FilePath my_path = build.getWorkspace().child("puppetgatlingdata");
-		CustomBuildAction customAction = new CustomBuildAction(build, file_save_dir);
+		
+		List<RequestReport> rrList = new ArrayList<RequestReport>();
+		int stupidCounter = 0;
+		for (BuildSimulation sim : action.getSimulations()){
+			RequestReport requestReport = new RequestReport();
+			requestReport.setMeanAgentRunTime(10L + stupidCounter);
+			requestReport.setMeanCatalogCompileTime(6L + stupidCounter);
+			stupidCounter++;
+			rrList.add(requestReport);
+		}
+		
+		CustomBuildAction customAction = new CustomBuildAction(build, file_save_dir, rrList);
 		build.addAction(customAction);
 		return true;
 	}
 	
-	private List<BuildSimulation> saveFullReports(FilePath workspace, File rootDir) throws IOException, InterruptedException{
-		FilePath[] files = workspace.list("**/global_stats.json");
-		List<FilePath> reportFolders = new ArrayList<FilePath>();
-		
-		if (files.length == 0){
-			throw new IllegalArgumentException("Could not find a Gatling report in results folder.");
-		}
-		
-		// Get reports folders for all "global_stats.json" found
-		for (FilePath file : files){
-			FilePath reportFilePath = file.getParent().getParent();
-			reportFolders.add(reportFilePath);
-			logger.println("[CustomArtifactDeployer] - Here is the report folder: " + reportFilePath);
-		}
-		
-		return new ArrayList<BuildSimulation>();
-	}
+//	private List<BuildSimulation> saveFullReports(FilePath workspace, File rootDir) throws IOException, InterruptedException{
+//		FilePath[] files = workspace.list("**/global_stats.json");
+//		List<FilePath> reportFolders = new ArrayList<FilePath>();
+//		
+//		if (files.length == 0){
+//			throw new IllegalArgumentException("Could not find a Gatling report in results folder.");
+//		}
+//		
+//		// Get reports folders for all "global_stats.json" found
+//		for (FilePath file : files){
+//			FilePath reportFilePath = file.getParent().getParent();
+//			reportFolders.add(reportFilePath);
+//			logger.println("[CustomArtifactDeployer] - Here is the report folder: " + reportFilePath);
+//		}
+//		
+//		return new ArrayList<BuildSimulation>();
+//	}
 	
 	private Map<Integer, List<ArtifactDeployerVO>> processDeployment(AbstractBuild<?, ?> build, final BuildListener listener, int currentNbDeployedArtifacts) throws ArtifactDeployerException {
 		Map<Integer, List<ArtifactDeployerVO>> deployedArtifacts = new HashMap<Integer, List<ArtifactDeployerVO>>();
