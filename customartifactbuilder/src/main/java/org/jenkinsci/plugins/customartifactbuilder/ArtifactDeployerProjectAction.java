@@ -1,10 +1,16 @@
 package org.jenkinsci.plugins.customartifactbuilder;
 
+import static com.excilys.ebi.gatling.jenkins.PluginConstants.MAX_BUILDS_TO_DISPLAY_DASHBOARD;
+import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Action;
 import hudson.model.Run;
 
 import java.util.List;
+
+import com.excilys.ebi.gatling.jenkins.RequestReport;
+import com.excilys.ebi.gatling.jenkins.GatlingBuildAction;
+import com.excilys.ebi.gatling.jenkins.chart.Graph;
 
 /**
  * @author Gregory Boissinot
@@ -24,6 +30,16 @@ public class ArtifactDeployerProjectAction implements Action {
     public AbstractProject<?, ?> getProject() {
     	return project;
     }
+    
+    public boolean isVisible() {
+		for (AbstractBuild<?, ?> build : getProject().getBuilds()) {
+			GatlingBuildAction gatlingBuildAction = build.getAction(GatlingBuildAction.class);
+			if (gatlingBuildAction != null) {
+				return true;
+			}
+		}
+		return false;
+	}
 
     @SuppressWarnings("unused")
     public DeployedArtifacts getLatestDeployedArtifacts() {
@@ -45,6 +61,15 @@ public class ArtifactDeployerProjectAction implements Action {
             return 0;
         }
         return latestSuccessfulBuild.getNumber();
+    }
+    
+    public Graph<Long> getdashboardGraph() {
+    	return new Graph<Long>(project, MAX_BUILDS_TO_DISPLAY_DASHBOARD) {
+			@Override
+			public Long getValue(RequestReport requestReport) {
+				return requestReport.getMeanResponseTime().getTotal();
+			}
+		};
     }
 
     public String getIconFileName() {

@@ -1,8 +1,15 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:fmt="jelly:fmt" xmlns:l="/lib/layout"
          xmlns:g="/com/excilys/ebi/gatling/jenkins/tags">
 	<l:layout title="${it.project.name} - ${%ProjectPageTitle}">
-	<l:side-panel>
-		<st:include it="${it.project}" page="sidepanel.jelly"/>
-	</l:side-panel>
+		<l:side-panel>
+			<st:include it="${it.project}" page="sidepanel.jelly"/>
+		</l:side-panel>
+		<l:main-panel>
+			<h1>${it.project.name} - ${%Custom Gatling Reports}</h1>
+			<h2>${%Available Reports}</h2>
+			<ul>
+				<li>A report goes here</li>
+			</ul>
+		</l:main-panel>
 	</l:layout>
 </j:jelly>
