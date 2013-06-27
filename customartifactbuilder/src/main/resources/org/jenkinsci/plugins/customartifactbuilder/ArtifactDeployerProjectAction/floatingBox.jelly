@@ -4,7 +4,10 @@
 	</div>
 	<j:if test="${action.isVisible()}">
 		<g:import/>
-		<!-- <div class="test-trend-caption">
-		</div> -->
+		<div class="test-trend-caption">
+			${%PerformanceTrend}
+			<g:graph id="customDashboardGatling" seriesNames="${action.dashboardGraph.seriesNamesJSON}"
+			         data="${action.dashboardGraph.seriesJSON}" yAxisUnit="ms" height="400px" width="500px"/>
+		</div>
 	</j:if>
 </j:jelly>

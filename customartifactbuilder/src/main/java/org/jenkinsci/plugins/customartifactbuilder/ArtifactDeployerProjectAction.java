@@ -8,9 +8,10 @@ import hudson.model.Run;
 
 import java.util.List;
 
+import org.jenkinsci.plugins.customartifactbuilder.chart.Graph;
+
 import com.excilys.ebi.gatling.jenkins.RequestReport;
 import com.excilys.ebi.gatling.jenkins.GatlingBuildAction;
-import com.excilys.ebi.gatling.jenkins.chart.Graph;
 
 /**
  * @author Gregory Boissinot
@@ -64,6 +65,7 @@ public class ArtifactDeployerProjectAction implements Action {
     }
     
     public Graph<Long> getdashboardGraph() {
+    	System.out.println("Get Dashboard Graph plz");
     	return new Graph<Long>(project, MAX_BUILDS_TO_DISPLAY_DASHBOARD) {
 			@Override
 			public Long getValue(RequestReport requestReport) {
