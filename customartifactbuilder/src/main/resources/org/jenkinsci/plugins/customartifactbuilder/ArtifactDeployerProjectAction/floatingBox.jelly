@@ -5,7 +5,7 @@
 	<j:if test="${action.isVisible()}">
 		<g:import/>
 		<div class="test-trend-caption">
-			Puppet Gatling Graph
+			Mean Agent Run Time
 			<g:graph id="customDashboardGatling" seriesNames="${action.dashboardGraph.seriesNamesJSON}"
 			         data="${action.dashboardGraph.seriesJSON}" yAxisUnit="ms" height="400px" width="500px"/>
 		</div>

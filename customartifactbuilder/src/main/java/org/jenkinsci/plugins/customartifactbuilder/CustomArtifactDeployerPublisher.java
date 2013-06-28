@@ -196,28 +196,45 @@ public class CustomArtifactDeployerPublisher extends Recorder implements MatrixA
 		GatlingBuildAction action = gba_lst.get(0);
 		int action_lst_size = action.getSimulations().size();
 		FilePath simdir = action.getSimulations().get(0).getSimulationDirectory();
-		String file_contents_path = simdir + "/stats.tsv";
+		String stats_file_contents_path = simdir + "/stats.tsv";
+		String simlog_file_contents_path = simdir + "/simulation.log";
 		
 		logger.println("[CustomArtifactDeployer] - It worked without errors..maybe... " + action_lst_size);
 		logger.println("[CustomArtifactDeployer] - The simulation directory is: " + simdir);
-		logger.println("[CustomArtifactDeployer] - The file contents path is: " + file_contents_path);
+		logger.println("[CustomArtifactDeployer] - The stats file contents path is: " + stats_file_contents_path);
 		// Open file object from simulation directory, get stats.tsv, parse it to obtain list of first things in line, then save as artifact
 		
 		// Open file, save to string, then split contents on tab
 		// Split per line, save first token on each line
-		LineIterator it = FileUtils.lineIterator(new File(file_contents_path));
+		
+		// Required Data Points:
+		// 	within stats.tsv:
+		//		Global Information -> Total[1], Mean [6](for average agent run)
+		//		catalog -> Mean[6] (for mean catalog compile time)
+		//	within simulation.log:
+		//		Instance Number, repetition number
+		
+		LineIterator it = FileUtils.lineIterator(new File(stats_file_contents_path));
 		List<String> ls_tokens = new ArrayList<String>();
 		try{
 			while(it.hasNext()){
 				String line = it.nextLine();
 				String[] tmp_toke = line.split("\t");
+				if (tmp_toke[0].equals("Global Information")){
+					logger.println("[CustomArtifactDeployer] - Global Information values: " + tmp_toke[0]);
+					logger.println("[CustomArtifactDeployer] - Global Information values Total: " + tmp_toke[1]);
+					logger.println("[CustomArtifactDeployer] - Global Information values Mean: " + tmp_toke[12]);
+				}
+				else if (tmp_toke[0].equals("catalog")){
+					logger.println("[CustomArtifactDeployer] - Catalog Info Mean: " + tmp_toke[12]);
+				}
 				ls_tokens.add(tmp_toke[0]);
 			}
 		} finally{
 			it.close();
 		}
 		
-		//String file_contents = FileUtils.readFileToString(new File(file_contents_path));
+		//String file_contents = FileUtils.readFileToString(new File(stats_file_contents_path));
 		
 		// Original File contents, then tokenized contents
 		String token_contents = "";

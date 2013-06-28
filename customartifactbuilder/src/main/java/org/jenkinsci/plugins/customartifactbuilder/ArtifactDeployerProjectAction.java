@@ -71,12 +71,23 @@ public class ArtifactDeployerProjectAction implements Action {
 			public Long getValue(RequestReport requestReport) {
 				return requestReport.getMeanAgentRunTime();
 			}
-
+		};
+    }
+    
+    public Graph<Long> getagentRunTime(){
+    	return new Graph<Long>(project, MAX_BUILDS_TO_DISPLAY_DASHBOARD) {
 			@Override
-			protected Long getValue(int i) {
-				// TODO Auto-generated method stub
-				Long ret = new Long(i);
-				return ret;
+			public Long getValue(RequestReport requestReport) {
+				return requestReport.getMeanAgentRunTime();
+			}
+		};
+    }
+    
+    public Graph<Long> getcatalogCompileTime(){
+    	return new Graph<Long>(project, MAX_BUILDS_TO_DISPLAY_DASHBOARD) {
+			@Override
+			public Long getValue(RequestReport requestReport) {
+				return requestReport.getMeanCatalogCompileTime();
 			}
 		};
     }

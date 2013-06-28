@@ -67,8 +67,6 @@ public abstract class Graph<Y extends Number> {
 		}
 	}
 
-	protected abstract Y getValue(int i);
-
 	public String getSeriesNamesJSON() {
 		String json = null;
 
