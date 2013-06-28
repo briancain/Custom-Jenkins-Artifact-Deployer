@@ -11,13 +11,11 @@ import hudson.model.AbstractBuild;
 
 public class CustomBuildAction implements Action {
 	
-	private final String filePath;
 	private final AbstractBuild<?, ?> build;
 	private final List<RequestReport> requestReportList;
 	
-	public CustomBuildAction(AbstractBuild<?, ?> build, String filePath, List<RequestReport> requestReportList){
+	public CustomBuildAction(AbstractBuild<?, ?> build, List<RequestReport> requestReportList){
 		this.build = build;
-		this.filePath = filePath;
 		this.requestReportList = requestReportList;
 	}
 	
@@ -39,9 +37,5 @@ public class CustomBuildAction implements Action {
 
 	public String getUrlName() {
 		return "cgatling";
-	}
-	
-	public String getFilePath(){
-		return filePath;
 	}
 }

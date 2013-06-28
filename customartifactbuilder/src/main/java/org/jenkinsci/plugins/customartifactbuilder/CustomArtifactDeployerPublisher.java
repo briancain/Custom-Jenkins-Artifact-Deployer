@@ -195,86 +195,77 @@ public class CustomArtifactDeployerPublisher extends Recorder implements MatrixA
 		}
 		GatlingBuildAction action = gba_lst.get(0);
 		int action_lst_size = action.getSimulations().size();
-		FilePath simdir = action.getSimulations().get(0).getSimulationDirectory();
-		String stats_file_contents_path = simdir + "/stats.tsv";
-		String simlog_file_contents_path = simdir + "/simulation.log";
 		
-		logger.println("[CustomArtifactDeployer] - It worked without errors..maybe... " + action_lst_size);
-		logger.println("[CustomArtifactDeployer] - The simulation directory is: " + simdir);
-		logger.println("[CustomArtifactDeployer] - The stats file contents path is: " + stats_file_contents_path);
-		// Open file object from simulation directory, get stats.tsv, parse it to obtain list of first things in line, then save as artifact
 		
-		// Open file, save to string, then split contents on tab
-		// Split per line, save first token on each line
+		List<RequestReport> rrList = new ArrayList<RequestReport>();
+		int simulationCounter = 0;
+		for (BuildSimulation sim : action.getSimulations()){
+			FilePath simdir = action.getSimulations().get(simulationCounter).getSimulationDirectory();
+			String stats_file_contents_path = simdir + "/stats.tsv";
+			
+			logger.println("[CustomArtifactDeployer] - It worked without errors..maybe... " + action_lst_size);
+			logger.println("[CustomArtifactDeployer] - The simulation directory is: " + simdir);
+			logger.println("[CustomArtifactDeployer] - The stats file contents path is: " + stats_file_contents_path);
+			// Open file object from simulation directory, get stats.tsv, parse it to obtain list of first things in line, then save as artifact
+			
+			List<Integer> calcList = getCalculations(stats_file_contents_path);
+			
+			RequestReport requestReport = new RequestReport();
+			requestReport.setMeanAgentRunTime(calcList.get(2).longValue());
+			requestReport.setMeanCatalogCompileTime(calcList.get(1).longValue());
+			simulationCounter++;
+			rrList.add(requestReport);
+		}
 		
+		CustomBuildAction customAction = new CustomBuildAction(build, rrList);
+		build.addAction(customAction);
+		return true;
+	}
+	
+	private List<Integer> getCalculations(String statsFilePath) throws IOException{
+		List<Integer> calcList = new ArrayList<Integer>();
 		// Required Data Points:
 		// 	within stats.tsv:
 		//		Global Information -> Total[1], Mean [6](for average agent run)
 		//		catalog -> Mean[6] (for mean catalog compile time)
 		//	within simulation.log:
 		//		Instance Number, repetition number
-		
-		LineIterator it = FileUtils.lineIterator(new File(stats_file_contents_path));
+
+		LineIterator it = FileUtils.lineIterator(new File(statsFilePath));
 		List<String> ls_tokens = new ArrayList<String>();
+
+		int globTotal = 0;
+		int catMean = 0;
+		int totalMean = 0;
+
 		try{
 			while(it.hasNext()){
 				String line = it.nextLine();
 				String[] tmp_toke = line.split("\t");
 				if (tmp_toke[0].equals("Global Information")){
-					logger.println("[CustomArtifactDeployer] - Global Information values: " + tmp_toke[0]);
 					logger.println("[CustomArtifactDeployer] - Global Information values Total: " + tmp_toke[1]);
-					logger.println("[CustomArtifactDeployer] - Global Information values Mean: " + tmp_toke[12]);
+					globTotal = Integer.parseInt(tmp_toke[1]);
 				}
 				else if (tmp_toke[0].equals("catalog")){
 					logger.println("[CustomArtifactDeployer] - Catalog Info Mean: " + tmp_toke[12]);
+					catMean = Integer.parseInt(tmp_toke[12]);
+					totalMean += Integer.parseInt(tmp_toke[12]);
 				}
-				ls_tokens.add(tmp_toke[0]);
+				else if(tmp_toke.length > 1 && !tmp_toke[0].equals("name")){
+					logger.println("[CustomArtifactDeployer] - Means: " + tmp_toke[0] + ": " + tmp_toke[12]);
+					totalMean += Integer.parseInt(tmp_toke[12]);
+				}
+				//ls_tokens.add(tmp_toke[0]);
 			}
 		} finally{
 			it.close();
 		}
-		
-		//String file_contents = FileUtils.readFileToString(new File(stats_file_contents_path));
-		
-		// Original File contents, then tokenized contents
-		String token_contents = "";
-		// create a new file in simdir with token_contents
-		//logger.println("[CustomArtifactDeployer] - The file contents is: \n" + file_contents);
-		
-		for(String token: ls_tokens){
-			logger.println("[CustomArtifactDeployer] - Here's a token: " + token + "\n");
-			token_contents += token + ", ";
-		}
-		
-		String file_save_dir = simdir + "/token.csv";
-		logger.println("[CustomArtifactDeployer] - The file dir to deploy is: " + file_save_dir);
-		FileUtils.writeStringToFile(new File(file_save_dir), token_contents);
-		
-		// Save to artifact Build Action?
-		// savefullreports function
-		/*logger.println("[CustomArtifactDeployer] - Archiving reports...");
-		List<BuildSimulation> sims = saveFullReports(build.getWorkspace(), build.getRootDir());
-		if (sims.size() == 0){
-			logger.println("[CustomArtifactDeployer] - No newer Gatling reports to archive");
-			return true;
-		}*/
-		
-		// file path passed into here
-		//FilePath my_path = build.getWorkspace().child("puppetgatlingdata");
-		
-		List<RequestReport> rrList = new ArrayList<RequestReport>();
-		int stupidCounter = 0;
-		for (BuildSimulation sim : action.getSimulations()){
-			RequestReport requestReport = new RequestReport();
-			requestReport.setMeanAgentRunTime(10L + stupidCounter);
-			requestReport.setMeanCatalogCompileTime(6L + stupidCounter);
-			stupidCounter++;
-			rrList.add(requestReport);
-		}
-		
-		CustomBuildAction customAction = new CustomBuildAction(build, file_save_dir, rrList);
-		build.addAction(customAction);
-		return true;
+
+		logger.println("[CustomArtifactDeployer] - Here are the values parsed: \n" + globTotal + "\n" + catMean + "\n" + totalMean);
+		calcList.add(globTotal);
+		calcList.add(catMean);
+		calcList.add(totalMean);
+		return calcList;
 	}
 	
 //	private List<BuildSimulation> saveFullReports(FilePath workspace, File rootDir) throws IOException, InterruptedException{
