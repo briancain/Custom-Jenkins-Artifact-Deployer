@@ -39,28 +39,8 @@ public class CustomArtifactDeployerBuilder extends Builder {
         this.filedir = filedir;
     }
 
-    /**
-     * We'll use this from the <tt>config.jelly</tt>.
-     */
-    /*public String getFile() {
-        return file;
-    }
-    
-    public String getFiledir(){
-    	return filedir;
-    }*/
-
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException {
-        // This is where you 'build' the project.
-        // Since this is a dummy, we just say 'hello world' and call that a build.
-
-        // This also shows how you can consult the global configuration of the builder
-//        if (getDescriptor().getUseFrench())
-//            listener.getLogger().println("Bonjour, "+name+"!");
-//        else
-//            listener.getLogger().println("Hello, "+name+"!");
-        	
         listener.getLogger().println("[CustomArtifactDeployer] - Welcome to the custom artifact deployer plugin.");
         listener.getLogger().println("[CustomArtifactDeployer] - The file you have picked is: " + file + ".");
         listener.getLogger().println("[CustomArtifactDeployer] - The file directory you have picked is: " + filedir + ".");
@@ -80,8 +60,6 @@ public class CustomArtifactDeployerBuilder extends Builder {
     }
     
     private boolean processDeployment(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener, FilePath workspace) throws InterruptedException {
-    	//Creating the remote directory
-        //listener.getLogger().println("[CustomArtifactDeployer] - The given path is:\n" + workspace);
     	
     	if (filedir == null){
     		listener.getLogger().println("[CustomArtifactDeployer] - A directory must be set.");

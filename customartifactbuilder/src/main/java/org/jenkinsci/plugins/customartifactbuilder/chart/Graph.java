@@ -29,11 +29,8 @@ import java.util.logging.Logger;
 import org.jenkinsci.plugins.customartifactbuilder.gatling.RequestReport;
 import org.jenkinsci.plugins.customartifactbuilder.gatling.CustomBuildAction;
 
-//import com.excilys.ebi.gatling.jenkins.GatlingBuildAction;
 import com.excilys.ebi.gatling.jenkins.chart.Serie;
 import com.excilys.ebi.gatling.jenkins.chart.SerieName;
-//import com.excilys.ebi.gatling.jenkins.BuildSimulation;
-//import com.excilys.ebi.gatling.jenkins.RequestReport;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public abstract class Graph<Y extends Number> {
@@ -54,13 +51,12 @@ public abstract class Graph<Y extends Number> {
 				List<RequestReport> tmpList = action.getRequestReportList();
 				int x = 0;
 				for (RequestReport requestR : tmpList){
-					SerieName name = new SerieName("Puppet Test " + x++);
+					SerieName name = new SerieName(requestR.getName());
 					if (!series.containsKey(name))
 					    series.put(name, new Serie<Integer, Y>());
 					
 					series.get(name).addPoint(build.getNumber(), getValue(requestR));
 				}
-				
 			}
 			if (numberOfBuild >= maxBuildsToDisplay)
 				break;

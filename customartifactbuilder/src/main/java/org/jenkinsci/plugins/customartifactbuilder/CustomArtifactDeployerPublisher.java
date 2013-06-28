@@ -2,7 +2,6 @@ package org.jenkinsci.plugins.customartifactbuilder;
 
 import org.jenkinsci.plugins.customartifactbuilder.service.*;
 import org.jenkinsci.plugins.customartifactbuilder.exception.ArtifactDeployerException;
-//import org.jenkinsci.plugins.customartifactbuilder.gatling.BuildSimulation;
 import org.jenkinsci.plugins.customartifactbuilder.gatling.RequestReport;
 import org.jenkinsci.plugins.customartifactbuilder.gatling.CustomBuildAction;
 
@@ -42,25 +41,14 @@ import hudson.tasks.Recorder;
 import hudson.util.FormValidation;
 
 /*
- * 
+ * Brian Cain
  * Code based off of original ArtifactDeployerPublisher
  */
 public class CustomArtifactDeployerPublisher extends Recorder implements MatrixAggregatable, Serializable{
 
-	//private final String file;
-    //private final String filedir;
-
     private List<ArtifactDeployerEntry> entries = Collections.emptyList();
     private boolean deployEvenBuildFail;
     private PrintStream logger;
-    
-    // Fields in config.jelly must match the parameter names in the "DataBoundConstructor"
-    // old constructor
-    /*@DataBoundConstructor
-    public CustomArtifactDeployerPublisher(String file, String filedir) {
-        this.file = file;
-        this.filedir = filedir;
-    }*/
     
     // New constructor
     @DataBoundConstructor
@@ -76,17 +64,6 @@ public class CustomArtifactDeployerPublisher extends Recorder implements MatrixA
     		this.entries = Collections.emptyList();
     	return this;
     }
-
-    /**
-     * We'll use this from the <tt>config.jelly</tt>.
-     */
-    /*public String getFile() {
-        return file;
-    }
-    
-    public String getFiledir(){
-    	return filedir;
-    }*/
     
 	public BuildStepMonitor getRequiredMonitorService() {
 		return BuildStepMonitor.NONE;
@@ -98,7 +75,6 @@ public class CustomArtifactDeployerPublisher extends Recorder implements MatrixA
     }
 	
 	public MatrixAggregator createAggregator(MatrixBuild build, Launcher launcher, BuildListener listener) {
-		// TODO Auto-generated method stub
         return new MatrixAggregator(build, launcher, listener) {
 
             @Override
@@ -127,29 +103,8 @@ public class CustomArtifactDeployerPublisher extends Recorder implements MatrixA
 	@Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
 		logger = listener.getLogger();
-		// This is where you 'build' the project.
-        // Since this is a dummy, we just say 'hello world' and call that a build.
-
-        // This also shows how you can consult the global configuration of the builder
-//	        if (getDescriptor().getUseFrench())
-//	            listener.getLogger().println("Bonjour, "+name+"!");
-//	        else
-//	            listener.getLogger().println("Hello, "+name+"!");
-        	
         logger.println("[CustomArtifactDeployer] - Welcome to the custom artifact deployer post-build plugin.");
-        /*listener.getLogger().println("[CustomArtifactDeployer] - The file you have picked is: " + file + ".");
-        listener.getLogger().println("[CustomArtifactDeployer] - The file directory you have picked is: " + filedir + ".");
         
-        //final FilePath workspace = build.getWorkspace();
-        boolean deploy = processDeployment(build, launcher, listener, workspace);
-        
-        if (!deploy){
-        	listener.getLogger().println("[CustomArtifactDeployer] - Deployment failed.");
-        	return false;
-        }
-        else{
-        	listener.getLogger().println("[CustomArtifactDeployer] - Deployment worked!");
-        }*/
         if (!(build.getProject() instanceof MatrixConfiguration)) {
             return _perform(build, launcher, listener);
         }
@@ -182,11 +137,15 @@ public class CustomArtifactDeployerPublisher extends Recorder implements MatrixA
 		
 		boolean succ = getBuildAction(build, launcher, listener);
 		
-		return true;
+		if (!succ){
+			logger.println("[CustomArtifactDeployer] - Get Build Action failed.");
+			return succ;
+		}
+		
+		return succ;
 	}
 	
 	private boolean getBuildAction(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException{
-		// get action - gatling build action
 		logger.println("[CustomArtifactDeployer] - Going to get Gatling Build Actions...");
 		List<GatlingBuildAction> gba_lst = build.getActions(GatlingBuildAction.class);
 		
@@ -206,13 +165,13 @@ public class CustomArtifactDeployerPublisher extends Recorder implements MatrixA
 			logger.println("[CustomArtifactDeployer] - It worked without errors..maybe... " + action_lst_size);
 			logger.println("[CustomArtifactDeployer] - The simulation directory is: " + simdir);
 			logger.println("[CustomArtifactDeployer] - The stats file contents path is: " + stats_file_contents_path);
-			// Open file object from simulation directory, get stats.tsv, parse it to obtain list of first things in line, then save as artifact
 			
 			List<Integer> calcList = getCalculations(stats_file_contents_path);
 			
 			RequestReport requestReport = new RequestReport();
 			requestReport.setMeanAgentRunTime(calcList.get(2).longValue());
 			requestReport.setMeanCatalogCompileTime(calcList.get(1).longValue());
+			requestReport.setName(sim.getSimulationName());
 			simulationCounter++;
 			rrList.add(requestReport);
 		}
@@ -224,12 +183,6 @@ public class CustomArtifactDeployerPublisher extends Recorder implements MatrixA
 	
 	private List<Integer> getCalculations(String statsFilePath) throws IOException{
 		List<Integer> calcList = new ArrayList<Integer>();
-		// Required Data Points:
-		// 	within stats.tsv:
-		//		Global Information -> Total[1], Mean [6](for average agent run)
-		//		catalog -> Mean[6] (for mean catalog compile time)
-		//	within simulation.log:
-		//		Instance Number, repetition number
 
 		LineIterator it = FileUtils.lineIterator(new File(statsFilePath));
 		List<String> ls_tokens = new ArrayList<String>();
@@ -255,7 +208,6 @@ public class CustomArtifactDeployerPublisher extends Recorder implements MatrixA
 					logger.println("[CustomArtifactDeployer] - Means: " + tmp_toke[0] + ": " + tmp_toke[12]);
 					totalMean += Integer.parseInt(tmp_toke[12]);
 				}
-				//ls_tokens.add(tmp_toke[0]);
 			}
 		} finally{
 			it.close();
@@ -267,24 +219,6 @@ public class CustomArtifactDeployerPublisher extends Recorder implements MatrixA
 		calcList.add(totalMean);
 		return calcList;
 	}
-	
-//	private List<BuildSimulation> saveFullReports(FilePath workspace, File rootDir) throws IOException, InterruptedException{
-//		FilePath[] files = workspace.list("**/global_stats.json");
-//		List<FilePath> reportFolders = new ArrayList<FilePath>();
-//		
-//		if (files.length == 0){
-//			throw new IllegalArgumentException("Could not find a Gatling report in results folder.");
-//		}
-//		
-//		// Get reports folders for all "global_stats.json" found
-//		for (FilePath file : files){
-//			FilePath reportFilePath = file.getParent().getParent();
-//			reportFolders.add(reportFilePath);
-//			logger.println("[CustomArtifactDeployer] - Here is the report folder: " + reportFilePath);
-//		}
-//		
-//		return new ArrayList<BuildSimulation>();
-//	}
 	
 	private Map<Integer, List<ArtifactDeployerVO>> processDeployment(AbstractBuild<?, ?> build, final BuildListener listener, int currentNbDeployedArtifacts) throws ArtifactDeployerException {
 		Map<Integer, List<ArtifactDeployerVO>> deployedArtifacts = new HashMap<Integer, List<ArtifactDeployerVO>>();

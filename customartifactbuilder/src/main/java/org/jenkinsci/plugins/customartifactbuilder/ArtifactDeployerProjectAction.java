@@ -11,11 +11,11 @@ import java.util.List;
 import org.jenkinsci.plugins.customartifactbuilder.chart.Graph;
 import org.jenkinsci.plugins.customartifactbuilder.gatling.RequestReport;
 
-//import com.excilys.ebi.gatling.jenkins.RequestReport;
 import com.excilys.ebi.gatling.jenkins.GatlingBuildAction;
 
 /**
  * @author Gregory Boissinot
+ * Modifications by Brian Cain
  */
 public class ArtifactDeployerProjectAction implements Action {
 
